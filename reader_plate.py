@@ -8,7 +8,7 @@ from models.vehicle_model import VehicleModel
 # Configuración de la ubicación de Tesseract OCR
 pytesseract.pytesseract.tesseract_cmd = r'C:\Users\Hp\AppData\Local\Programs\Tesseract-OCR\tesseract.exe'
 config = '--psm 1'
-cap = cv2.VideoCapture(0) 
+cap = cv2.VideoCapture(0)
 plate = Plate()
 
 def read_plate(socket):

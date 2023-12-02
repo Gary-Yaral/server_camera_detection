@@ -16,3 +16,5 @@ class MysqlDB:
         except mysql.connector.Error as e:
             print(f"Error connecting to the database: {e}")
             return None
+    
+conn = MysqlDB().connect()

@@ -1,12 +1,11 @@
-from db_config.mysql import MysqlDB
+from db_config.mysql import conn
 from db_constants.common_functions import closeConnection, openConnection
 
 class Vehicle():
   conn = None
   cursor = None
   def __init__(self,):
-    db = MysqlDB()
-    self.conn = db.connect()
+    self.conn = conn
   
   def new_cursor(self):
     return self.conn.cursor(dictionary=True)
@@ -21,7 +20,6 @@ class Vehicle():
             plate_number,
             status_type_id,
             access_type_id,
-            status_type_id,
             vehicles_type.id AS vehicle_type_id
           FROM vehicles
           INNER JOIN vehicles_type
