@@ -17,7 +17,14 @@ config = '--psm 1'
 
 @app.route('/video_feed')
 def video_feed():
-    return Response(read_plate(socket), mimetype='multipart/x-mixed-replace; boundary=frame')
+    # ... lógica para obtener los datos a transmitir        
+    try:
+        return Response(read_plate(socket), mimetype='multipart/x-mixed-replace; boundary=frame')
+    except Exception as e:
+        # Si hay un error, devuelve una imagen estática
+        with open('assets/security_camera.jpg', 'rb') as image_file:
+            static_image = image_file.read()
+        return Response(static_image, mimetype='image/jpg')
 
 @app.errorhandler(404)
 def page_not_found(e):
