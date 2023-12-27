@@ -14,16 +14,17 @@ plate = Plate()
 def read_plate(socket):
     text = ""
     while True:
-        ret, img = cap.read()
+        wasRead, obtained_frame = cap.read()
 
-        if ret == False:
+        # Verificamos si se pudo obtener acceso a la cámara y obtener la imagen
+        if wasRead == False:
             break
 
         # Leemos la imagen y la convertimos a escala de grises
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        gray_frame = cv2.cvtColor(obtained_frame, cv2.COLOR_BGR2GRAY)
 
         # Aplicamos filtro y detectamos los bordes para localizar placa
-        bfilter = cv2.bilateralFilter(gray, 11, 17, 17) #Reducimos ruido
+        bfilter = cv2.bilateralFilter(gray_frame, 11, 17, 17) #Reducimos ruido
         edged = cv2.Canny(bfilter, 30, 200) #Detectamos bordes
 
         # Encontramos los contornos y aplicamos una mascara
@@ -38,11 +39,11 @@ def read_plate(socket):
                 location = approx
                 break
             
-        mask = np.zeros(gray.shape, np.uint8)
+        mask = np.zeros(gray_frame.shape, np.uint8)
         if location is not None:
             # La máscara es válida, puedes realizar operaciones en ella
             cv2.drawContours(mask, [location], 0, 255, -1)
-            cv2.bitwise_and(img, img, mask=mask)
+            cv2.bitwise_and(obtained_frame, obtained_frame, mask=mask)
 
         (x, y) = np.where(mask == 255)
         # Inicializa las coordenadas en cero
@@ -54,7 +55,7 @@ def read_plate(socket):
 
        # Verificamos si la imagen recortada tiene dimensiones mínimas para realizar el recorte
         if x2 - x1 > 0 and y2 - y1 > 0:
-            cropped_image = gray[x1:x2+1, y1:y2+1]
+            cropped_image = gray_frame[x1:x2+1, y1:y2+1]
 
             # Verificamos si la imagen recortada tiene un tamaño mínimo para procesar con Tesseract
             if cropped_image.size > 0:
@@ -65,19 +66,19 @@ def read_plate(socket):
                 # Limpiamos y validamos el texto
                 is_valid, clean_text = plate.is_plate(text)
                 if is_valid == True :
-                    cv2.putText(img, text=clean_text, org=(y1, x2 + 30), fontFace=font, fontScale=1, color=(255, 255, 0), thickness=2, lineType=cv2.LINE_AA)
+                    cv2.putText(obtained_frame, text=clean_text, org=(y1, x2 + 30), fontFace=font, fontScale=1, color=(255, 255, 0), thickness=2, lineType=cv2.LINE_AA)
 
                     # Buscamos la placa en la base de datos
                     was_found, vehicleData = VehicleModel.find_vehicle(clean_text)
                     if was_found == True:
-                        cv2.putText(img, text="Encontrada", org=(y1, x2 + 50), 
+                        cv2.putText(obtained_frame, text="Encontrada", org=(y1, x2 + 50), 
                         fontFace=font, fontScale=1, color=(0, 255, 0), thickness=2, lineType=cv2.LINE_AA)
                         socket.emit("detected", {"vehicle": vehicleData,"exists": True})
                     else:
-                        cv2.putText(img, text="Desconocida", org=(y1, x2 + 50), 
+                        cv2.putText(obtained_frame, text="Desconocida", org=(y1, x2 + 50), 
                         fontFace=font, fontScale=1, color=(0, 0, 255), thickness=2, lineType=cv2.LINE_AA)
                         socket.emit("detected", {"vehicle": {"plate_number": clean_text},"exists": False})
-                cv2.rectangle(img, (y1, x1), (y2, x2), (255, 255, 0), 3)
+                cv2.rectangle(obtained_frame, (y1, x1), (y2, x2), (255, 255, 0), 3)
             else:
                 # Si la imagen recortada es demasiado pequeña o vacía, mantén el texto en blanco
                 text = ""
@@ -86,11 +87,11 @@ def read_plate(socket):
             text = ""
         
        
-        _, buffer = cv2.imencode('.jpg', img)
-        img = buffer.tobytes()
+        _, buffer = cv2.imencode('.jpg', obtained_frame)
+        obtained_frame = buffer.tobytes()
 
         yield (b'--frame\r\n'
-                b'Content-Type: image/jpeg\r\n\r\n' + img + b'\r\n')
+                b'Content-Type: image/jpeg\r\n\r\n' + obtained_frame + b'\r\n')
             
                 
 
