@@ -66,17 +66,30 @@ def read_plate(socket):
                 # Limpiamos y validamos el texto
                 is_valid, clean_text = plate.is_plate(text)
                 if is_valid == True :
-                    cv2.putText(obtained_frame, text=clean_text, org=(y1, x2 + 30), fontFace=font, fontScale=1, color=(255, 255, 0), thickness=2, lineType=cv2.LINE_AA)
+                    padding = 50
+                    thickness = 2
+                    # Obtener el tamaño del texto
+                    text_width, text_height = cv2.getTextSize(text, font, 1, thickness)[0]
+
+                    # Coordenadas del rectángulo con ancho fijo
+                    rect_x1, rect_y1 = y1, x2 + 10
+                    rect_width, rect_height = text_width + padding, 100
+                    rect_x2, rect_y2 = rect_x1 + rect_width + 20, rect_y1 + rect_height
+
+                    # Dibujar el rectángulo en la imagen
+                    cv2.rectangle(obtained_frame, (int(rect_x1), int(rect_y1)), (int(rect_x2), int(rect_y2)), (50, 50, 50), -1)                                  
+                    cv2.putText(obtained_frame, text=clean_text, org=(y1+20, x2 + padding), fontFace=font, fontScale=1, color=(255, 255, 0), thickness=thickness, lineType=cv2.LINE_AA)
 
                     # Buscamos la placa en la base de datos
                     was_found, vehicleData = VehicleModel.find_vehicle(clean_text)
                     if was_found == True:
-                        cv2.putText(obtained_frame, text="Encontrada", org=(y1, x2 + 50), 
-                        fontFace=font, fontScale=1, color=(0, 255, 0), thickness=2, lineType=cv2.LINE_AA)
+                        cv2.putText(obtained_frame, text="Registrada", org=(y1+20, x2 + 80), 
+                        fontFace=font, fontScale=1, color=(0, 255, 0), thickness=thickness, lineType=cv2.LINE_AA)
                         socket.emit("detected", {"vehicle": vehicleData,"exists": True})
+                        #Poner fondo al texto
                     else:
-                        cv2.putText(obtained_frame, text="Desconocida", org=(y1, x2 + 50), 
-                        fontFace=font, fontScale=1, color=(0, 0, 255), thickness=2, lineType=cv2.LINE_AA)
+                        cv2.putText(obtained_frame, text="Desconocida", org=(y1+20, x2 + 80), 
+                        fontFace=font, fontScale=1, color=(80, 80, 255), thickness=thickness, lineType=cv2.LINE_AA)
                         socket.emit("detected", {"vehicle": {"plate_number": clean_text},"exists": False})
                 cv2.rectangle(obtained_frame, (y1, x1), (y2, x2), (255, 255, 0), 3)
             else:

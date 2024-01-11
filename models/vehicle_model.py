@@ -31,7 +31,6 @@ class Vehicle():
         params = (plate_number,)
         cursor.execute(query, params)
         result = cursor.fetchone()
-        print(result)
         if not result:
           return (False, None)
         return (True, result)
