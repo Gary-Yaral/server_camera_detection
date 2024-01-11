@@ -12,7 +12,7 @@ CORS(app, resources={r"/*": {"origins": url_frontend}})
 socket = SocketIO(app, cors_allowed_origins= url_frontend)
 
 # Configuración de la ubicación de Tesseract OCR
-pytesseract.pytesseract.tesseract_cmd = r'C:\Users\Hp\AppData\Local\Programs\Tesseract-OCR\tesseract.exe'
+pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 config = '--psm 1'
 
 @app.route('/video_feed')

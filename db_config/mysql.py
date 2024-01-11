@@ -1,20 +1,12 @@
-import mysql.connector
 from config.env import mysql_config
+import mysql.connector.pooling as pooling
 
 class MysqlDB:
-    config=None
+    _pool = None
+    pool_name = 'pool_querys' 
 
-    def __init__(self) -> None:
-        self.config = mysql_config
-
-    def connect(self):
-        try:
-            connection = mysql.connector.connect(**self.config)
-            if connection.is_connected():
-                print("Open connection")
-                return connection
-        except mysql.connector.Error as e:
-            print(f"Error connecting to the database: {e}")
-            return None
-    
-conn = MysqlDB().connect()
+    @staticmethod
+    def get_instance():
+        if MysqlDB._pool is None:
+            MysqlDB._pool = pooling.MySQLConnectionPool(pool_name=MysqlDB.pool_name, pool_size=5, **mysql_config)
+        return MysqlDB._pool
